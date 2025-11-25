@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modelos de Machine Learning</title>
+
+<style>
+    body {
+
+    font-family: "Segoe UI", Roboto, Arial;
+    padding: 30px;
+    margin: 0;
+
+    /* ====== FONDO CON IMAGEN REPETIDA + DEGRADADO ====== */
+    background-image: 
+        linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.95)),
+        url("/img/machine-learning.png");
+    
+    background-repeat: repeat;         /* Repetir imagen */
+    background-size: 120px;            /* Tamaño de cada repetición */
+    background-attachment: fixed;      /* Efecto elegante al hacer scroll */
+
+    }
+
+    .card {
+        position: relative;
+        overflow: hidden;
+        max-width: 1200px;
+        background: rgba(255,255,255,0.75); /* <- agrega esto */
+        backdrop-filter: blur(6px);         /* <- opcional, efecto glass */
+        margin: auto;
+        border-radius: 14px;
+        padding: 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    /* ------- BARRA SUPERIOR ------- */
+    .tabs {
+        display: flex;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .tab-btn {
+        flex: 1;
+        text-align: center;
+        padding: 16px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        background: none;
+        transition: 0.25s ease;
+    }
+
+    .tab-btn:hover {
+        background: #eef2ff;
+    }
+
+    .tab-btn.active {
+        background: #2563eb;
+        color: white;
+        box-shadow: inset 0 -4px 0 rgba(0,0,0,0.15);
+    }
+
+    /* ------- CONTENIDO ------- */
+    .content {
+        padding: 30px;
+        animation: fadeIn .3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {opacity: 0;}
+        to   {opacity: 1;}
+    }
+
+    .form-container {
+        display: none;
+    }
+
+    .form-container.active {
+        display: block;
+    }
+
+    /* ------- FORMULARIOS GENERALES ------- */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 16px;
+    }
+
+    label {
+        font-weight: 500;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d0d7de;
+        border-radius: 8px;
+        background: white;
+        box-sizing: border-box;
+        transition: .2s;
+    }
+
+    input:focus, select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        outline: none;
+    }
+
+    button.submit-btn {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        margin-top: 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+    button.submit-btn:hover {
+        background: #1e4fd1;
+    }
+
+    .result-box {
+        margin-top: 15px;
+        background: #eef2ff;
+        padding: 14px;
+        border-radius: 8px;
+        display: none;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      font-weight: 600;
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 22px;
+    }
+
+.card {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Canvas detrás del contenido */
+#bg-anim {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;   /* Detrás */
+    opacity: 0.25; /* Para que no distraiga */
+}
+
+.tabs, .content {
+    position: relative;
+    z-index: 5;   /* arriba del canvas */
+}
+
+
+</style>
+</head>
+
+<body>
+            <h1>Modelos de Machine Learning</h1>
+
+    <div class="card ">
+        <!-- CANVAS ANIMADO DETRÁS DEL CONTENIDO -->
+        <canvas id="bg-anim"></canvas>
+
+        <!-- ====================== BARRA SUPERIOR ====================== -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('logistica')">
+                <img src=".\img\logistica.png" alt="Regresión Logística" class="icon-btn" width="40px">
+                Regresión Logística
+            </button>
+
+            <button class="tab-btn" onclick="showTab('knn')">
+                <img src=".\img\knn.png" alt="KNN" class="icon-btn" width="50px">
+                KNN
+            </button>
+
+            <button class="tab-btn" onclick="showTab('kmeans')">
+                <img src=".\img\k-means.png" alt="K-means" class="icon-btn" width="50px">
+                K-means
+            </button>
+        </div>
+
+        <!-- ====================== CONTENIDO ====================== -->
+        <div class="content">
+
+            <!-- ---------- FORMULARIO: REGRESIÓN LOGÍSTICA ---------- -->
+            <div id="logistica" class="form-container active">
+
+                <div class="">
+                    <h1>Formulario de Predicción de Churn</h1>
+
+                    <form id="predictFormRL">
+                        <div class="grid">
+
+                            <div>
+                                <label>Cargos Mensuales</label>
+                                <input type="number" name="Cargos_Mensuales" min="0" value="0" required>
+                            </div>
+
+                            <div>
+                                <label>Género</label>
+                                <select name="Genero">
+                                    <option value="Male">Hombre</option>
+                                    <option value="Female">Mujer</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Adulto Mayor</label>
+                                <select name="Adulto_Mayor">
+                                    <option value="0">No</option>
+                                    <option value="1">Sí</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>¿Tiene Pareja?</label>
+                                <select name="Pareja">
+                                    <option value="Yes">Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>¿Tiene Dependientes?</label>
+                                <select name="Dependientes">
+                                    <option value="Yes">Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Antigüedad</label>
+                                <select name="Antiguedad" required>
+                                    <option value="" disabled selected>Seleccione...</option>
+                                    <!-- opciones 1 al 72 -->
+                                    <script>
+                                        for (let i = 1; i <= 72; i++) {
+                                            document.write(`<option value="${i}">${i}</option>`);
+                                        }
+                                    </script>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Servicio Telefónico</label>
+                                <select name="Servicio_Telefonico">
+                                    <option value="Yes">Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Líneas Múltiples</label>
+                                <select name="Lineas_Multiples">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Sí</option>
+                                    <option value="No phone service">Sin servicio telefónico</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Servicio de Internet</label>
+                                <select name="Servicio_Internet">
+                                    <option value="DSL">DSL</option>
+                                    <option value="Fiber optic">Fibra Óptica</option>
+                                    <option value="No">Ninguno</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Seguridad en Línea</label>
+                                <select name="Seguridad_Online">
+                                    <option value="Yes">Sí</option>
+                                    <option value="No">No</option>
+                                    <option value="No internet service">Sin internet</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Backup Online</label>
+                                <select name="Backup_Online">
+                                    <option value="Yes">Sí</option>
+                                    <option value="No">No</option>
+                                    <option value="No internet service">Sin internet</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Protección del Dispositivo</label>
+                                <select name="Proteccion_Dispositivo">
+                                    <option value="Yes">Sí</option>
+                                    <option value="No">No</option>
+                                    <option value="No internet service">Sin internet</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Soporte Técnico</label>
+                                <select name="Soporte_Tecnico">
+                                    <option value="Yes">Sí</option>
+                                    <option value="No">No</option>
+                                    <option value="No internet service">Sin internet</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Tipo de Contrato</label>
+                                <select name="Contrato">
+                                    <option value="Month-to-month">Mensual</option>
+                                    <option value="One year">1 Año</option>
+                                    <option value="Two year">2 Años</option>
+                                </select>
+                            </div>
+
+                        </div>
+                    </form>
+
+
+                </div>
+
+                <button  type="button" class="submit-btn" id="btnCalcularRL">Calcular RL</button>
+                <div id="res-logistica" ></div>
+            </div>
+
+            
+            <!-- ---------- FORMULARIO: KNN ---------- -->
+            <div id="knn" class="form-container">
+
+                    <!-- Aquí pegas TU formulario KNN -->
+                        <div class="">
+                            <h1>Formulario de Predicción de Churn</h1>
+
+                            <form id="predictFormKNN">
+                                <div class="grid">
+
+                                    <div>
+                                        <label>Cargos Mensuales</label>
+                                        <input type="number" name="Cargos_Mensuales" min="0" value="0" required>
+                                    </div>
+
+                                    <div>
+                                        <label>Género</label>
+                                        <select name="Genero">
+                                            <option value="Male">Hombre</option>
+                                            <option value="Female">Mujer</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Adulto Mayor</label>
+                                        <select name="Adulto_Mayor">
+                                            <option value="0">No</option>
+                                            <option value="1">Sí</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>¿Tiene Pareja?</label>
+                                        <select name="Pareja">
+                                            <option value="Yes">Sí</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>¿Tiene Dependientes?</label>
+                                        <select name="Dependientes">
+                                            <option value="Yes">Sí</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Antigüedad</label>
+                                        <select name="Antiguedad" required>
+                                            <option value="" disabled selected>Seleccione...</option>
+                                            <!-- opciones 1 al 72 -->
+                                            <script>
+                                                for (let i = 1; i <= 72; i++) {
+                                                    document.write(`<option value="${i}">${i}</option>`);
+                                                }
+                                            </script>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Servicio Telefónico</label>
+                                        <select name="Servicio_Telefonico">
+                                            <option value="Yes">Sí</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Líneas Múltiples</label>
+                                        <select name="Lineas_Multiples">
+                                            <option value="No">No</option>
+                                            <option value="Yes">Sí</option>
+                                            <option value="No phone service">Sin servicio telefónico</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Servicio de Internet</label>
+                                        <select name="Servicio_Internet">
+                                            <option value="DSL">DSL</option>
+                                            <option value="Fiber optic">Fibra Óptica</option>
+                                            <option value="No">Ninguno</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Seguridad en Línea</label>
+                                        <select name="Seguridad_Online">
+                                            <option value="Yes">Sí</option>
+                                            <option value="No">No</option>
+                                            <option value="No internet service">Sin internet</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Backup Online</label>
+                                        <select name="Backup_Online">
+                                            <option value="Yes">Sí</option>
+                                            <option value="No">No</option>
+                                            <option value="No internet service">Sin internet</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Protección del Dispositivo</label>
+                                        <select name="Proteccion_Dispositivo">
+                                            <option value="Yes">Sí</option>
+                                            <option value="No">No</option>
+                                            <option value="No internet service">Sin internet</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Soporte Técnico</label>
+                                        <select name="Soporte_Tecnico">
+                                            <option value="Yes">Sí</option>
+                                            <option value="No">No</option>
+                                            <option value="No internet service">Sin internet</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Tipo de Contrato</label>
+                                        <select name="Contrato">
+                                            <option value="Month-to-month">Mensual</option>
+                                            <option value="One year">1 Año</option>
+                                            <option value="Two year">2 Años</option>
+                                        </select>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    
+                <button type="button" class="submit-btn" id="btnCalcularKNN">Calcular KNN</button>
+                <div id="res-knn"></div>
+            </div>
+
+
+            <!-- ---------- FORMULARIO: K-MEANS ---------- -->
+            <div id="kmeans" class="form-container">
+                <h1>Clustering K-means</h1>
+
+                        <form id="formulario-kmeans">
+                            <div class="grid" id="inputs-grid">
+                                    
+                            </div>
+
+                            <button id="btn-kmeans" class="submit-btn">Calcular k-Means</button>
+                            <div class="result-box" id="res-kmeans"></div>
+
+                        </form>
+                    <p id="resultado"></p>
+                
+               
+            </div>  
+
+        </div>
+
+    </div>
+
+    <!-- ====================== TAB ====================== -->
+<script>
+    function showTab(tabName) {
+    // Ocultar todos los contenedores
+    document.querySelectorAll(".form-container").forEach(div => div.classList.remove("active"));
+
+    // Mostrar el contenedor seleccionado
+    document.getElementById(tabName).classList.add("active");
+
+    // Cambiar estilo del botón activo
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+    event.target.classList.add("active");
+
+    }
+
+</script>
+
+
+<!-- ====================== FUNCIONALIDAD RL ====================== -->
+<script>
+    const API_URL_RL = "http://127.0.0.1:8000/predict-regresion";
+
+    document.getElementById("btnCalcularRL").addEventListener("click", async function () {
+        try {
+            const form = document.getElementById("predictFormRL");
+            const formData = new FormData(form);
+
+            let data = {};
+            formData.forEach((value, key) => {
+                if (!isNaN(value) && value !== "") {
+                    data[key] = Number(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+
+            console.log("DATA ENVIADA:", data);
+
+            const response = await fetch(API_URL_RL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            console.log("STATUS BACKEND:", response.status);
+
+            if (!response.ok) {
+                throw new Error("Error en la API");
+            }
+
+            const resultRL = await response.json();
+
+            // Convertir 0/1 a Sí/No
+            const churnTexto = (resultRL.churn == 1) ? "SI" : "NO";
+
+            // Mostrar resultado
+            document.getElementById("res-logistica").innerHTML = `
+                <strong>Churn:</strong> ${churnTexto} <br>
+                <strong>Mensaje:</strong> ${resultRL.mensaje} <br><br>
+            `;
+
+        } catch (error) {
+            console.error("ERROR:", error);
+            document.getElementById("res-logistica").innerHTML = 
+                "<span style='color:red;'>Error procesando la solicitud</span>";
+        }
+    });
+</script>
+
+
+
+
+
+<!-- ====================== FUNCIONALIDAD KNN ====================== -->
+
+<script>
+
+    const API_URL_KNN = "http://127.0.01:8000/predict-knn";
+
+    document.getElementById("btnCalcularKNN").addEventListener("click", async function () {
+        try {
+            const form = document.getElementById("predictFormKNN");
+            const formData = new FormData(form);
+
+            let data = {};
+            formData.forEach((value, key) => {
+                if (!isNaN(value) && value !== "") {
+                    data[key] = Number(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+
+            console.log("DATA ENVIADA:", data);
+
+            const response = await fetch(API_URL_KNN, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            console.log("STATUS BACKEND:", response.status);
+
+            if (!response.ok) {
+                throw new Error("Error en la API");
+            }
+
+            const resultRL = await response.json();
+
+            // Convertir 0/1 a Sí/No
+            const churnTexto = (resultRL.churn == 1) ? "SI" : "NO";
+
+            // Mostrar resultado
+            document.getElementById("res-knn").innerHTML = `
+                <strong>Churn:</strong> ${churnTexto} <br>
+                <strong>Mensaje:</strong> ${resultRL.mensaje} <br><br>
+            `;
+
+        } catch (error) {
+            console.error("ERROR:", error);
+            document.getElementById("res-knn").innerHTML = 
+                "<span style='color:red;'>Error procesando la solicitud</span>";
+        }
+    });
+
+</script>
+
+
+<!-- ====================== FUNCIONALIDAD K_MEANS ====================== -->
+<script>
+    const variables = [
+            "Saldo_Actual",
+            "Frecuencia_Actualizacion_Saldo",
+            "Compras_Totales",
+            "Compras_Unico_Pago",
+            "Compras_Cuotas",
+            "Avances_Efectivo",
+            "Frecuencia_Compras",
+            "Frecuencia_Compras_Unico_Pago",
+            "Frecuencia_Compras_Cuotas",
+            "Frecuencia_Avances",
+            "Transacciones_Avances",
+            "Transacciones_Compras",
+            "Limite_Credito",
+            "Pagos",
+            "Pagos_Minimos",
+            "Porcentaje_Pago_Completo",
+            "Antiguedad_Cliente"
+        ];
+
+        window.onload = () => {
+            let grid = document.getElementById("inputs-grid");
+
+            variables.forEach(v => {
+                grid.innerHTML += `
+                    <div>
+                        <label>${v.replace(/_/g, " ")}:</label>
+                        <input type="number" step="any" id="${v}" required>
+                    </div>
+                `;
+            });
+        };
+
+        const API_URL = "http://127.0.0.1:8000/predict-kmeans";
+
+        document.getElementById("formulario-kmeans").addEventListener("submit", async function(e){
+            e.preventDefault();
+
+            let data = {};
+            variables.forEach(v => {
+                data[v] = parseFloat(document.getElementById(v).value);
+            });
+
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            document.getElementById("resultado").innerHTML = `
+                <strong>Cluster asignado:</strong> ${result.cluster}<br>
+                <strong>Descripción:</strong> ${result.descripcion} <br><br>
+            `;
+        });
+</script>
+
+
+<!-- ====================== animación ====================== -->
+
+<script>
+const canvas = document.getElementById("bg-anim");
+const ctx = canvas.getContext("2d");
+const card = document.querySelector(".card");
+
+function resizeCanvas() {
+    canvas.width = card.offsetWidth;
+    canvas.height = card.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+let points = [];
+const total = 55;
+
+for (let i = 0; i < total; i++) {
+    points.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4
+    });
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Conexiones
+    for (let i = 0; i < total; i++) {
+        for (let j = i + 1; j < total; j++) {
+            let dx = points[i].x - points[j].x;
+            let dy = points[i].y - points[j].y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+
+            if (dist < 140) {
+                ctx.strokeStyle = "rgba(255,255,255," + (1 - dist / 140) + ")";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(points[i].x, points[i].y);
+                ctx.lineTo(points[j].x, points[j].y);
+                ctx.stroke();
+            }
+        }
+    }
+
+    // Puntos + movimiento
+    for (let p of points) {
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+    }
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+
+
+</body>
+</html>
