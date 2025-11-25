@@ -1,21 +1,22 @@
+import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import logging
 import joblib
 import os
-import logging
-import numpy as np
+
 
 app = FastAPI(
-    title="API Modelo K-Means",
-    description="Asignación de clúster para clientes de tarjetas de crédito",
+    title="API Modelos ML",
+    description="modelos de machine learning",
     version="1.0"
 )
 
 # ---- CORS ----
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite cualquier origen (útil para desarrollo)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,7 +25,7 @@ app.add_middleware(
 # obtener la ruta del proyecto
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Crear archivo de log en la raíz del proyecto
+# Crear archivo de log en la raíz del proyecto para ver las peticiones que llegan.
 log_file = os.path.join(os.getcwd(), "backend.log")
 logging.basicConfig(
     filename=log_file,
@@ -33,78 +34,37 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 #======================== Regresión Logistica ============================================
 
-# Rutas
 rl_path  = os.path.join(BASE_DIR, "Modelo-RL", "Modelo_RL.pkl")
 scaler_rl_path  = os.path.join(BASE_DIR, "Modelo-RL", "Scaler_RL.pkl")
-rl = joblib.load(rl_path)  # modelo entrenado
-scaler_rl = joblib.load(scaler_rl_path)  # StandardScaler usado en entrenamiento
-
+rl = joblib.load(rl_path)
+scaler_rl = joblib.load(scaler_rl_path)
 
 
 # --- Conversión de categorías numéricas ---
 def convertir_valores(data):
 
     conv = {}
-
-    # 1. Cargos mensuales
     conv["Cargos_Mensuales"] = data.Cargos_Mensuales
-
-    # 2. Género
     conv["Genero"] = 1 if data.Genero.lower() == "male" else 0
-
-    # 3. Adulto Mayor
     conv["Adulto_Mayor"] = int(data.Adulto_Mayor)
-
-    # 4. Pareja
     conv["Pareja"] = 1 if data.Pareja.lower() == "yes" else 0
-
-    # 5. Dependientes
     conv["Dependientes"] = 1 if data.Dependientes.lower() == "yes" else 0
-
-    # 6. Antigüedad
     conv["Antiguedad"] = int(data.Antiguedad)
-
-    # 7. Servicio Telefónico
     conv["Servicio_Telefonico"] = 1 if data.Servicio_Telefonico.lower() == "yes" else 0
-
-    # 8. Líneas Múltiples
     conv["Lineas_Multiples"] = 1 if data.Lineas_Multiples == "Yes" else 0
-
-    # 9. Servicio de Internet
-    conv["Servicio_Internet"] = {
-        "No": 0,
-        "DSL": 1,
-        "Fiber optic": 2
-    }.get(data.Servicio_Internet, 0)
-
-    # 10. Seguridad Online
+    conv["Servicio_Internet"] = {"No": 0, "DSL": 1, "Fiber optic": 2 }.get(data.Servicio_Internet, 0)
     conv["Seguridad_Online"] = 1 if data.Seguridad_Online == "Yes" else 0
-
-    # 11. Backup Online
     conv["Backup_Online"] = 1 if data.Backup_Online == "Yes" else 0
-
-    # 12. Protección Dispositivo
     conv["Proteccion_Dispositivo"] = 1 if data.Proteccion_Dispositivo == "Yes" else 0
-
-    # 13. Soporte Técnico
     conv["Soporte_Tecnico"] = 1 if data.Soporte_Tecnico == "Yes" else 0
+    conv["Contrato"] = {"Month-to-month": 0, "One year": 1, "Two year": 2 }.get(data.Contrato, 0)
 
-    # 14. Contrato
-    conv["Contrato"] = {
-        "Month-to-month": 0,
-        "One year": 1,
-        "Two year": 2
-    }.get(data.Contrato, 0)
-
-    # ---------------------------------------------
-    # 📌 Guardar LOG en backend.log
-    # ---------------------------------------------
+    # Guardar LOG en el archivo backend.log
     logger.info("Datos recibidos convertidos: %s", conv)
-
     return conv
-
 
 
 class EntradaClienteRL(BaseModel):
@@ -123,10 +83,9 @@ class EntradaClienteRL(BaseModel):
     Soporte_Tecnico: str
     Contrato: str
 
-
+# Ruta que se debe consumir desde el front
 @app.post("/predict-regresion")
 def predecir_regresion_logistica(data: EntradaClienteRL):
-
     valores = convertir_valores(data)
 
     # Orden correcto para el modelo
@@ -152,77 +111,35 @@ def predecir_regresion_logistica(data: EntradaClienteRL):
 
 
 
-
-
 #======================== KNN ============================================
 
-# Rutas
 knn_path  = os.path.join(BASE_DIR, "Modelo-KNN", "Modelo_knn.pkl")
 scaler_knn_path  = os.path.join(BASE_DIR, "Modelo-KNN", "Scaler_knn.pkl")
-knn = joblib.load(knn_path)  # modelo entrenado
-scaler_knn = joblib.load(scaler_knn_path)  # StandardScaler usado en entrenamiento
+knn = joblib.load(knn_path)
+scaler_knn = joblib.load(scaler_knn_path)
 
 
 # --- Conversión de categorías numéricas ---
 def convertir_valoresKNN(data):
 
     conv = {}
-
-    # 1. Cargos mensuales
     conv["Cargos_Mensuales"] = data.Cargos_Mensuales
-
-    # 2. Género
     conv["Genero"] = 1 if data.Genero.lower() == "male" else 0
-
-    # 3. Adulto Mayor
     conv["Adulto_Mayor"] = int(data.Adulto_Mayor)
-
-    # 4. Pareja
     conv["Pareja"] = 1 if data.Pareja.lower() == "yes" else 0
-
-    # 5. Dependientes
     conv["Dependientes"] = 1 if data.Dependientes.lower() == "yes" else 0
-
-    # 6. Antigüedad
     conv["Antiguedad"] = int(data.Antiguedad)
-
-    # 7. Servicio Telefónico
     conv["Servicio_Telefonico"] = 1 if data.Servicio_Telefonico.lower() == "yes" else 0
-
-    # 8. Líneas Múltiples
     conv["Lineas_Multiples"] = 1 if data.Lineas_Multiples == "Yes" else 0
-
-    # 9. Servicio de Internet
-    conv["Servicio_Internet"] = {
-        "No": 0,
-        "DSL": 1,
-        "Fiber optic": 2
-    }.get(data.Servicio_Internet, 0)
-
-    # 10. Seguridad Online
+    conv["Servicio_Internet"] = {"No": 0, "DSL": 1, "Fiber optic": 2}.get(data.Servicio_Internet, 0)
     conv["Seguridad_Online"] = 1 if data.Seguridad_Online == "Yes" else 0
-
-    # 11. Backup Online
     conv["Backup_Online"] = 1 if data.Backup_Online == "Yes" else 0
-
-    # 12. Protección Dispositivo
     conv["Proteccion_Dispositivo"] = 1 if data.Proteccion_Dispositivo == "Yes" else 0
-
-    # 13. Soporte Técnico
     conv["Soporte_Tecnico"] = 1 if data.Soporte_Tecnico == "Yes" else 0
+    conv["Contrato"] = {"Month-to-month": 0, "One year": 1, "Two year": 2}.get(data.Contrato, 0)
 
-    # 14. Contrato
-    conv["Contrato"] = {
-        "Month-to-month": 0,
-        "One year": 1,
-        "Two year": 2
-    }.get(data.Contrato, 0)
-
-    # ---------------------------------------------
-    # 📌 Guardar LOG en backend.log
-    # ---------------------------------------------
+    # Guardar LOG en backend.log
     logger.info("Datos recibidos convertidos: %s", conv)
-
     return conv
 
 
@@ -242,12 +159,11 @@ class EntradaClienteKNN(BaseModel):
     Soporte_Tecnico: str
     Contrato: str
 
-
+# Ruta que se debe consumir desde el front
 @app.post("/predict-knn")
 def predecir_regresion_knn(data: EntradaClienteKNN):
 
     valores = convertir_valoresKNN(data)
-
     # Orden correcto para el modelo
     orden = [
         "Cargos_Mensuales","Genero","Adulto_Mayor","Pareja","Dependientes",
@@ -273,15 +189,13 @@ def predecir_regresion_knn(data: EntradaClienteKNN):
 
 #========================= K-MEANS ===========================================
 
-# Rutas
 kmeans_path = os.path.join(BASE_DIR, "Modelo-KMEANS", "modelo_kmeans.pkl")
 scaler_path = os.path.join(BASE_DIR, "Modelo-KMEANS", "scaler.pkl")
 variables_path = os.path.join(BASE_DIR, "Modelo-KMEANS", "variables.pkl")
 
-kmeans = joblib.load(kmeans_path)  # modelo entrenado
-scaler = joblib.load(scaler_path)  # StandardScaler usado en entrenamiento
-variables = joblib.load(variables_path) # lista con las 17 columnas
-#pca = joblib.load("pca.pkl")
+kmeans = joblib.load(kmeans_path)
+scaler = joblib.load(scaler_path)
+variables = joblib.load(variables_path)
 
 # Descripciones precalculadas
 descripciones = {
@@ -290,7 +204,6 @@ descripciones = {
     2: "Cluster 2 – Clientes de bajo gasto: menores niveles de compras, límites de crédito bajos y uso moderado de avances."
 }
 
-# Modelo de entrada (form body)
 class EntradaCliente(BaseModel):
     Saldo_Actual: float
     Frecuencia_Actualizacion_Saldo: float
@@ -310,11 +223,10 @@ class EntradaCliente(BaseModel):
     Porcentaje_Pago_Completo: float
     Antiguedad_Cliente: float
 
-# Endpoint principal
+# Ruta que se debe consumir desde el front
 @app.post("/predict-kmeans")
 def predecir_cluster(data: EntradaCliente):
 
-    # Convertir los datos a numpy en el MISMO ORDEN que variables.pkl
     X = np.array([[getattr(data, var) for var in variables]])
 
     # Escalar
@@ -327,6 +239,4 @@ def predecir_cluster(data: EntradaCliente):
         "cluster": cluster,
         "descripcion": descripciones[cluster]
     }
-
-
 

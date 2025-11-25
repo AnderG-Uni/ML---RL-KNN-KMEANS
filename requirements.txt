@@ -1,5 +1,9 @@
+# Se requieren las siguientes liberias para que funcione el proyecto.
+
 fastapi
 uvicorn
-joblib
-scikit-learn
+pandas
 numpy
+scikit-learn==1.6.1
+joblib
+pydantic

@@ -57,7 +57,7 @@ uvicorn main:app --reload --host 127.0.0.1 --port 8000
 2: POST http://127.0.0.1:8000/predict-knn
 3: POST http://127.0.0.1:8000/predict
 
-# Para realizar pruebas con postman
+# Para realizar pruebas con postman : ejemplos
 
 - http://127.0.01:8000/predict-regresion
   {
@@ -118,8 +118,9 @@ uvicorn main:app --reload --host 127.0.0.1 --port 8000
 
 # Cómo ejecutar el frontend
 
-- Se recomienda ejecutar un servidor web para evitar problemas de cors aunque el backend permite cualquier origen.
-  python -m http.server 8080
+Se recomienda ejecutar un servidor web para evitar problemas de cors aunque el backend permite cualquier origen.
+
+- python -m http.server 8080
 
 # url de acceso
 
