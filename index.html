@@ -9,17 +9,16 @@
     body {
 
     font-family: "Segoe UI", Roboto, Arial;
-    padding: 30px;
+    padding: 10px;
     margin: 0;
 
-    /* ====== FONDO CON IMAGEN REPETIDA + DEGRADADO ====== */
     background-image: 
         linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.95)),
         url("/img/machine-learning.png");
     
-    background-repeat: repeat;         /* Repetir imagen */
-    background-size: 120px;            /* Tamaño de cada repetición */
-    background-attachment: fixed;      /* Efecto elegante al hacer scroll */
+    background-repeat: repeat;         
+    background-size: 190px;           
+    background-attachment: fixed;
 
     }
 
@@ -27,15 +26,14 @@
         position: relative;
         overflow: hidden;
         max-width: 1200px;
-        background: rgba(255,255,255,0.75); /* <- agrega esto */
-        backdrop-filter: blur(6px);         /* <- opcional, efecto glass */
+        background: rgba(255,255,255,0.95); 
+        backdrop-filter: blur(6px);       
         margin: auto;
         border-radius: 14px;
         padding: 0;
         box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
-    /* ------- BARRA SUPERIOR ------- */
     .tabs {
         display: flex;
         background: #f8fafc;
@@ -64,7 +62,6 @@
         box-shadow: inset 0 -4px 0 rgba(0,0,0,0.15);
     }
 
-    /* ------- CONTENIDO ------- */
     .content {
         padding: 30px;
         animation: fadeIn .3s ease;
@@ -83,7 +80,6 @@
         display: block;
     }
 
-    /* ------- FORMULARIOS GENERALES ------- */
     .grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -144,42 +140,55 @@
       margin-bottom: 22px;
     }
 
-.card {
-    position: relative;
-    overflow: hidden;
-}
+    .card {
+        position: relative;
+        overflow: hidden;
+    }
 
-/* Canvas detrás del contenido */
-#bg-anim {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;   /* Detrás */
-    opacity: 0.25; /* Para que no distraiga */
-}
+    /* Canvas de fondo dentro del content */
+    #bg-anim-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;           
+        opacity: 0.75;        /* opacidad 99% */
+        pointer-events: none; /* evita interferir con los formularios */
+    }
 
-.tabs, .content {
-    position: relative;
-    z-index: 5;   /* arriba del canvas */
-}
+    .tabs, .content {
+        position: relative;
+        z-index: 5;   /* arriba del canvas */
+    }
 
+    /* Para que los formularios queden encima */
+    .content {
+        position: relative;
+        z-index: 1;
+        padding: 30px;
+    }
+
+    .main-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #0d1b2a;
+        text-align: center;
+        text-shadow: 0px 2px 6px rgba(0,0,0,0.15); 
+        margin-bottom: 5px;
+    }
 
 </style>
 </head>
 
 <body>
-            <h1>Modelos de Machine Learning</h1>
-
+    <h1 class="main-title">Modelos de Machine Learning</h1>
     <div class="card ">
-        <!-- CANVAS ANIMADO DETRÁS DEL CONTENIDO -->
-        <canvas id="bg-anim"></canvas>
 
         <!-- ====================== BARRA SUPERIOR ====================== -->
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('logistica')">
-                <img src=".\img\logistica.png" alt="Regresión Logística" class="icon-btn" width="40px">
+                <img src=".\img\logistica.png" alt="Regresión Logística" class="icon-btn" width="50px">
                 Regresión Logística
             </button>
 
@@ -196,6 +205,8 @@
 
         <!-- ====================== CONTENIDO ====================== -->
         <div class="content">
+            <canvas id="bg-anim-content"></canvas>
+
 
             <!-- ---------- FORMULARIO: REGRESIÓN LOGÍSTICA ---------- -->
             <div id="logistica" class="form-container active">
@@ -500,7 +511,9 @@
 
     </div>
 
-    <!-- ====================== TAB ====================== -->
+
+
+<!-- ====================== TAB ====================== -->
 <script>
     function showTab(tabName) {
     // Ocultar todos los contenedores
@@ -516,7 +529,6 @@
     }
 
 </script>
-
 
 <!-- ====================== FUNCIONALIDAD RL ====================== -->
 <script>
@@ -569,12 +581,7 @@
     });
 </script>
 
-
-
-
-
 <!-- ====================== FUNCIONALIDAD KNN ====================== -->
-
 <script>
 
     const API_URL_KNN = "http://127.0.01:8000/predict-knn";
@@ -626,7 +633,6 @@
     });
 
 </script>
-
 
 <!-- ====================== FUNCIONALIDAD K_MEANS ====================== -->
 <script>
@@ -688,74 +694,72 @@
         });
 </script>
 
-
-<!-- ====================== animación ====================== -->
-
+<!-- ====================== ANIMACIÓN ====================== -->
 <script>
-const canvas = document.getElementById("bg-anim");
-const ctx = canvas.getContext("2d");
-const card = document.querySelector(".card");
+    const canvas = document.getElementById("bg-anim-content");
+    const ctx = canvas.getContext("2d");
 
-function resizeCanvas() {
-    canvas.width = card.offsetWidth;
-    canvas.height = card.offsetHeight;
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
-let points = [];
-const total = 55;
+    let points = [];
+    const totalPoints = 50;
 
-for (let i = 0; i < total; i++) {
-    points.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4
-    });
-}
+    for (let i = 0; i < totalPoints; i++) {
+        points.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            dx: (Math.random() - 0.5) * 0.6,
+            dy: (Math.random() - 0.5) * 0.6
+        });
+    }
 
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Conexiones
-    for (let i = 0; i < total; i++) {
-        for (let j = i + 1; j < total; j++) {
-            let dx = points[i].x - points[j].x;
-            let dy = points[i].y - points[j].y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
+        // Dibujar líneas
+        ctx.strokeStyle = "rgba(180,180,255,0.3)";
+        ctx.lineWidth = 1;
 
-            if (dist < 140) {
-                ctx.strokeStyle = "rgba(255,255,255," + (1 - dist / 140) + ")";
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(points[i].x, points[i].y);
-                ctx.lineTo(points[j].x, points[j].y);
-                ctx.stroke();
+        for (let i = 0; i < points.length; i++) {
+            for (let j = i + 1; j < points.length; j++) {
+
+                let dx = points[i].x - points[j].x;
+                let dy = points[i].y - points[j].y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+
+                if (dist < 150) {
+                    ctx.beginPath();
+                    ctx.moveTo(points[i].x, points[i].y);
+                    ctx.lineTo(points[j].x, points[j].y);
+                    ctx.stroke();
+                }
             }
         }
+
+        // Dibujar puntos
+        for (let p of points) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(120,120,255,0.7)";
+            ctx.fill();
+
+            p.x += p.dx;
+            p.y += p.dy;
+
+            if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+        }
+
+        requestAnimationFrame(draw);
     }
 
-    // Puntos + movimiento
-    for (let p of points) {
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-    }
-
-    requestAnimationFrame(animate);
-}
-
-animate();
+    draw();
 </script>
-
 
 
 </body>
